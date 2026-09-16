@@ -8,7 +8,7 @@ import (
 	"github.com/Fro1ko/final/pkg/api"
 )
 
-func Start() {
+func Start() error {
 	port := os.Getenv("TODO_PORT")
 	if port == "" {
 		port = "7540"
@@ -19,5 +19,5 @@ func Start() {
 
 	log.Printf("Starting web server on port %s", port)
 
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	return http.ListenAndServe(":"+port, nil)
 }

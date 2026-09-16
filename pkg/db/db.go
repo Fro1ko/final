@@ -6,7 +6,8 @@ import (
 
 	_ "modernc.org/sqlite"
 )
-//create table if not exists
+
+// create table if not exists
 const schema = `
 CREATE TABLE IF NOT EXISTS scheduler (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,7 +21,6 @@ CREATE INDEX IF NOT EXISTS idx_scheduler_date ON scheduler (date);
 
 var database *sql.DB
 
-//Init db
 func Init(dbFile string) error {
 	_, err := os.Stat(dbFile)
 	install := os.IsNotExist(err)
@@ -42,4 +42,14 @@ func Init(dbFile string) error {
 	}
 
 	return nil
+}
+
+func Close() error {
+	if database == nil {
+		return nil
+	}
+
+	err := database.Close()
+	database = nil
+	return err
 }

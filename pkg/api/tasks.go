@@ -8,6 +8,8 @@ import (
 	"github.com/Fro1ko/final/pkg/db"
 )
 
+const defaultLimit = 50
+
 type tasksResponse struct {
 	Tasks []taskResponseItem `json:"tasks"`
 }
@@ -22,7 +24,7 @@ type taskResponseItem struct {
 
 func tasksHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		writeJSON(w, http.StatusMethodNotAllowed, taskResponse{Error: "Метод не разрешен"})
+		writeJSON(w, http.StatusMethodNotAllowed, taskResponse{Error: "метод не разрешен"})
 		return
 	}
 
@@ -32,7 +34,7 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		date = parsed.Format(dateFormat)
 	}
 
-	tasks, err := db.SearchTasks(search, date, 50)
+	tasks, err := db.SearchTasks(search, date, defaultLimit)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, taskResponse{Error: err.Error()})
 		return

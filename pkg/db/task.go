@@ -2,8 +2,8 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
-	"strconv"
 )
 
 type Task struct {
@@ -25,19 +25,14 @@ func AddTask(task *Task) (int64, error) {
 	return result.LastInsertId()
 }
 
-func GetTask(id string) (*Task, error) {
-	taskID, err := strconv.ParseInt(id, 10, 64)
-	if err != nil || taskID < 1 {
-		return nil, fmt.Errorf("incorrect id")
-	}
-
+func GetTask(id int64) (*Task, error) {
 	task := new(Task)
-	err = database.QueryRow(
+	err := database.QueryRow(
 		`SELECT id, date, title, comment, repeat FROM scheduler WHERE id = ?`,
-		taskID,
+		id,
 	).Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("task not found")
 		}
 		return nil, err
@@ -64,15 +59,10 @@ func UpdateTask(task *Task) error {
 	return nil
 }
 
-func UpdateDate(next string, id string) error {
-	taskID, err := strconv.ParseInt(id, 10, 64)
-	if err != nil || taskID < 1 {
-		return fmt.Errorf("incorrect id")
-	}
-
+func UpdateDate(next string, id int64) error {
 	result, err := database.Exec(
 		`UPDATE scheduler SET date = ? WHERE id = ?`,
-		next, taskID,
+		next, id,
 	)
 	if err != nil {
 		return err
@@ -88,13 +78,8 @@ func UpdateDate(next string, id string) error {
 	return nil
 }
 
-func DeleteTask(id string) error {
-	taskID, err := strconv.ParseInt(id, 10, 64)
-	if err != nil || taskID < 1 {
-		return fmt.Errorf("incorrect id")
-	}
-
-	result, err := database.Exec(`DELETE FROM scheduler WHERE id = ?`, taskID)
+func DeleteTask(id int64) error {
+	result, err := database.Exec(`DELETE FROM scheduler WHERE id = ?`, id)
 	if err != nil {
 		return err
 	}

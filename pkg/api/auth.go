@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -41,13 +40,12 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	password := os.Getenv("TODO_PASSWORD")
-	if subtle.ConstantTimeCompare([]byte(request.Password), []byte(password)) != 1 {
-		writeJSON(w, http.StatusUnauthorized, signinResponse{Error: "Неверный пароль"})
+	if subtle.ConstantTimeCompare([]byte(request.Password), []byte(configuredPassword)) != 1 {
+		writeJSON(w, http.StatusUnauthorized, signinResponse{Error: "неверный пароль"})
 		return
 	}
 
-	token, err := makeToken(password)
+	token, err := makeToken(configuredPassword)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, signinResponse{Error: err.Error()})
 		return
@@ -57,10 +55,9 @@ func signinHandler(w http.ResponseWriter, r *http.Request) {
 
 func auth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		password := os.Getenv("TODO_PASSWORD")
-		if password != "" {
+		if configuredPassword != "" {
 			cookie, err := r.Cookie("token")
-			if err != nil || !validToken(cookie.Value, password) {
+			if err != nil || !validToken(cookie.Value, configuredPassword) {
 				http.Error(w, "Authentification required", http.StatusUnauthorized)
 				return
 			}
